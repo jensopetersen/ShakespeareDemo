@@ -523,8 +523,8 @@ function app:show-hits($node as node()*, $model as map(*), $start as xs:integer,
     let $work := $hit/ancestor::tei:TEI
     let $work-id := $work/@xml:id/string()
     let $work-title := app:work-title($work)
-    (:pad hit with surrounding siblings:)
-    let $hit-padded := <hit>{($hit/preceding-sibling::*[1], $hit, $hit/following-sibling::*[1])}</hit>
+    (:pad hit with surrounding siblings in order to get more context:)
+    let $matchId := ($hit/@xml:id, util:node-id($hit))[1]
     let $loc := 
         <tr class="reference">
             <td colspan="3">
@@ -532,11 +532,13 @@ function app:show-hits($node as node()*, $model as map(*), $start as xs:integer,
                 <a href="{$work-id}.html">{$work-title}</a>, <a href="{$div-id}.html?action=search">{$div-head}</a>
             </td>
         </tr>
-    let $matchId := ($hit/@xml:id, util:node-id($hit))[1]
-    let $config := <config width="120" table="yes" link="{$div-id}.html?action=search#{$matchId}"/>
-    let $kwic := kwic:summarize($hit-padded, $config, app:filter#2)
+    let $config := <config width="100" table="yes" link="{$div-id}.html?action=search#{$matchId}"/>
+    let $hit := <hit>{($hit/preceding-sibling::*[1], $hit, $hit/following-sibling::*[1])}</hit>
+    let $hit := util:expand($hit)
     return
-        ($loc, $kwic)        
+        for $match in $hit//exist:match
+        let $kwic := kwic:get-summary($hit, $match, $config, app:filter#2)
+        return ($loc, $kwic)
 };
 
 (:~
