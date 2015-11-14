@@ -10,14 +10,6 @@ import module namespace kwic="http://exist-db.org/xquery/kwic" at "resource:org/
 declare namespace tei="http://www.tei-c.org/ns/1.0";
 declare namespace functx = "http://www.functx.com";
 
-declare function functx:contains-any-of
-  ( $arg as xs:string? ,
-    $searchStrings as xs:string* )  as xs:boolean {
-
-   some $searchString in $searchStrings
-   satisfies contains($arg,$searchString)
- } ;
-
 (:modified by applying functx:escape-for-regex() :)
 declare function functx:number-of-matches 
   ( $arg as xs:string? ,
@@ -36,6 +28,7 @@ declare function functx:escape-for-regex
 (:~
  : List Shakespeare works
  :)
+(:template function in index.html:)
 declare 
     %templates:wrap
 function app:list-works($node as node(), $model as map(*)) {
@@ -48,6 +41,7 @@ function app:list-works($node as node(), $model as map(*)) {
     }
 };
 
+(:template function in view-div.html, view-outline.html:)
 declare
     %templates:wrap
 function app:work($node as node(), $model as map(*), $id as xs:string?) {
@@ -56,10 +50,12 @@ function app:work($node as node(), $model as map(*), $id as xs:string?) {
         map { "work" := $work }
 };
 
+(:template function in view-outline.html:)
 declare function app:header($node as node(), $model as map(*)) {
     tei2:tei2html($model("work")/tei:teiHeader)
 };
 
+(:template function in view-div.html, view-outline.html. :)
 declare function app:outline($node as node(), $model as map(*), $details as xs:string) {
     let $details := $details = "yes"
     let $work := $model("work")/ancestor-or-self::tei:TEI
@@ -178,6 +174,7 @@ declare function app:outline($node as node(), $model as map(*), $details as xs:s
 (:~
  : 
  :)
+(:template function in index.html:)
 declare function app:work-title($node as node(), $model as map(*), $type as xs:string?) {
     let $suffix := if ($type) then "." || $type else ()
     let $work := $model("work")/ancestor-or-self::tei:TEI
@@ -189,6 +186,7 @@ declare %private function app:work-title($work as element(tei:TEI)) {
     $work/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1]/text()
 };
 
+(:template function in index.html:)
 declare 
     %templates:wrap
 function app:checkbox($node as node(), $model as map(*), $target-texts as xs:string*) {
@@ -201,6 +199,7 @@ function app:checkbox($node as node(), $model as map(*), $target-texts as xs:str
         ()
 };
 
+(: template function in index.html:)
 declare function app:work-type($node as node(), $model as map(*)) {
     let $work := $model("work")/ancestor-or-self::tei:TEI
     let $id := $work/@xml:id/string()
@@ -213,18 +212,21 @@ declare function app:work-type($node as node(), $model as map(*)) {
         , ', ')    
 };
 
+(:template function in index.html:)
 declare function app:epub-link($node as node(), $model as map(*)) {
     let $id := $model("work")/@xml:id/string()
     return
         <a xmlns="http://www.w3.org/1999/xhtml" href="{$node/@href}{$id}.epub">{ $node/node() }</a>
 };
 
+(:template function in index.html:)
 declare function app:pdf-link($node as node(), $model as map(*)) {
     let $id := $model("work")/@xml:id/string()
     return
         <a xmlns="http://www.w3.org/1999/xhtml" href="{$node/@href}{$id}.pdf">{ $node/node() }</a>
 };
 
+(:template function in index.html:)
 declare function app:xml-link($node as node(), $model as map(*)) {
     let $doc-path := document-uri(root($model("work")))
     let $eXide-link := templates:link-to-app("http://exist-db.org/apps/eXide", "index.html?open=" || $doc-path)
@@ -235,6 +237,7 @@ declare function app:xml-link($node as node(), $model as map(*)) {
         else <a xmlns="http://www.w3.org/1999/xhtml" href="{$rest-link}" target="_blank">{ $node/node() }</a>
 };
 
+(:template function in search.html, view-div.html, view-outline.html:)
 declare function app:copy-params($node as node(), $model as map(*)) {
     element { node-name($node) } {
         $node/@* except $node/@href,
@@ -255,6 +258,7 @@ declare function app:copy-params($node as node(), $model as map(*)) {
     }
 };
 
+(:template function in index.html:)
 declare function app:work-types($node as node(), $model as map(*)) {
     let $types := distinct-values(doc(concat($config:data-root, '/', 'work-types.xml'))//value)
     let $control :=
@@ -268,6 +272,7 @@ declare function app:work-types($node as node(), $model as map(*)) {
         templates:form-control($control, $model)
 };
 
+(:template function in view-div.html:)
 declare function app:navigation($node as node(), $model as map(*)) {
     let $div := $model("work")
     let $prevDiv := $div/preceding::tei:div[parent::tei:div][1]
@@ -290,6 +295,7 @@ declare function app:navigation($node as node(), $model as map(*)) {
         }
 };
 
+(:template function in view-div.html:)
 declare 
     %templates:default("action", "browse")
 function app:view-div($node as node(), $model as map(*), $id as xs:string, $action as xs:string) {
@@ -320,22 +326,24 @@ function app:view-div($node as node(), $model as map(*), $id as xs:string, $acti
     Execute the query. The search results are not output immediately. Instead they
     are passed to nested templates through the $model parameter.
 :)
+(:template function in search.html:)
 declare 
-    %templates:default("mode", "any")
     %templates:default("scope", "narrow")
     %templates:default("work-types", "all")
     %templates:default("target-texts", "all")
-function app:query($node as node()*, $model as map(*), $query as xs:string?, $mode as xs:string, $scope as xs:string, 
-    $work-types as xs:string+, $target-texts as xs:string+) {
-    let $queryExpr := app:create-query($query, $mode)
+function app:query($node as node()*, $model as map(*), $query as xs:string?, $scope as xs:string, 
+    $work-types as xs:string+, $target-texts as xs:string+) as map() {
+    let $query := if ($query) then app:sanitize-lucene-query($query) else ''
+    let $query := normalize-space($query)
     return
-        if (empty($queryExpr) or $queryExpr = "") then
+        if ($query = "") then
             let $cached := session:get-attribute("apps.shakespeare")
             return
                 map {
                     "hits" := $cached,
                     "query" := session:get-attribute("apps.shakespeare.query"),
-                    "scope" := $scope
+                    "scope" := $scope,
+                    "target-texts" := $target-texts
                 }
         else
             (:Get the work ids of the work types selected.:)  
@@ -357,94 +365,33 @@ function app:query($node as node()*, $model as map(*), $query as xs:string?, $mo
             let $hits :=
                 if ($scope eq 'narrow')
                 then
-                    for $hit in ($context//tei:sp[ft:query(., $queryExpr)], $context//tei:lg[ft:query(., $queryExpr)])
+                    for $hit in ($context//tei:sp[ft:query(., $query)], $context//tei:lg[ft:query(., $query)])
                     order by ft:score($hit) descending
                     return $hit
                 else
-                    for $hit in $context//tei:div[not(tei:div)][ft:query(., $queryExpr)]
+                    for $hit in $context//tei:div[not(tei:div)][ft:query(., $query)]
                     order by ft:score($hit) descending
                     return $hit
             let $store := (
                 session:set-attribute("apps.shakespeare", $hits),
-                session:set-attribute("apps.shakespeare.query", $queryExpr),
-                session:set-attribute("apps.shakespeare.scope", $scope)
+                session:set-attribute("apps.shakespeare.query", $query),
+                session:set-attribute("apps.shakespeare.scope", $scope),
+                session:set-attribute("apps.shakespeare.target-texts", $target-texts)
             )
             return
                 (: Process nested templates :)
                 map {
                     "hits" := $hits,
-                    "query" := $queryExpr
+                    "query" := $query,
+                    "scope" := $scope,
+                    "target-texts" := $target-texts
                 }
-};
-
-(:~
-    Helper function: create a lucene query from the user input
-:)
-declare %private function app:create-query($query-string as xs:string?, $mode as xs:string) {
-    let $query-string := 
-        if ($query-string) 
-        then app:sanitize-lucene-query($query-string) 
-        else ''
-    let $query-string := normalize-space($query-string)
-    let $query:=
-        (:If the query contains any operator used in sandard lucene searches or regex searches, pass it on to the query parser;:) 
-        if (functx:contains-any-of($query-string, ('AND', 'OR', 'NOT', '+', '-', '!', '~', '^', '.', '?', '*', '|', '{','[', '(', '<', '@', '#', '&amp;')) and $mode eq 'any')
-        then 
-            let $luceneParse := app:parse-lucene($query-string)
-            let $luceneXML := util:parse($luceneParse)
-            let $lucene2xml := app:lucene2xml($luceneXML/node(), $mode)
-            return $lucene2xml
-        (:otherwise the query is performed by selecting one of the special options (any, all, phrase, near, fuzzy, wildcard or regex):)
-        else
-            let $query-string := tokenize($query-string, '\s')
-            let $last-item := $query-string[last()]
-            let $query-string := 
-                if ($last-item castable as xs:integer) 
-                then string-join(subsequence($query-string, 1, count($query-string) - 1), ' ') 
-                else string-join($query-string, ' ')
-            let $query :=
-                <query>
-                    {
-                        if ($mode eq 'any') 
-                        then
-                            for $term in tokenize($query-string, '\s')
-                            return <term occur="should">{$term}</term>
-                        else if ($mode eq 'all') 
-                        then
-                            <bool>
-                            {
-                                for $term in tokenize($query-string, '\s')
-                                return <term occur="must">{$term}</term>
-                            }
-                            </bool>
-                        else 
-                            if ($mode eq 'phrase') 
-                            then <phrase>{$query-string}</phrase>
-                            else
-                                if ($mode eq 'near-unordered')
-                                then <near slop="{if ($last-item castable as xs:integer) then $last-item else 5}" ordered="no">{$query-string}</near>
-                                else 
-                                    if ($mode eq 'near-ordered')
-                                    then <near slop="{if ($last-item castable as xs:integer) then $last-item else 5}" ordered="yes">{$query-string}</near>
-                                    else 
-                                        if ($mode eq 'fuzzy')
-                                        then <fuzzy max-edits="{if ($last-item castable as xs:integer and number($last-item) < 3) then $last-item else 2}">{$query-string}</fuzzy>
-                                        else 
-                                            if ($mode eq 'wildcard')
-                                            then <wildcard>{$query-string}</wildcard>
-                                            else 
-                                                if ($mode eq 'regex')
-                                                then <regex>{$query-string}</regex>
-                                                else ()
-                    }</query>
-            return $query
-    return $query
-    
 };
 
 (:~
  : Create a bootstrap pagination element to navigate through the hits.
  :)
+(:template function in search.html:)
 declare
     %templates:wrap
     %templates:default('start', 1)
@@ -504,13 +451,51 @@ function app:paginate($node as node(), $model as map(*), $start as xs:int, $per-
 (:~
     Create a span with the number of items in the current search result.
 :)
-declare function app:hit-count($node as node()*, $model as map(*)) {
-    <span xmlns="http://www.w3.org/1999/xhtml" id="hit-count">{ count($model("hits")) }</span>
+(:template function in search.html:)
+declare function app:query-report($node as node()*, $model as map(*)) {
+    let $hit-count := count($model("hits"))
+    let $ids := $model("target-texts")
+    return
+    <span xmlns="http://www.w3.org/1999/xhtml" id="query-report"> You searched for <strong>{'"' || $model("query") || '" '}</strong> in <strong>{if ($ids eq 'all') then 'all works' else app:ids-to-titles($ids)}</strong> and found <strong>{$hit-count}</strong>{if ($hit-count eq 1) then ' match.' else ' matches.'}
+    </span>
+};
+
+declare function app:ids-to-titles($ids as xs:string+) {
+    let $titles :=
+        for $id in $ids
+        return
+            collection($config:data-root)//tei:TEI[@xml:id = $id]//tei:titleStmt/tei:title
+    let $count := count($titles)
+    return
+        app:serialize-list($titles, $count)
+};
+
+declare function app:serialize-list($sequence as item()+, $sequence-count as xs:integer) as xs:string {       
+    if ($sequence-count eq 1)
+        then $sequence
+        else
+            if ($sequence-count eq 2)
+            then concat(
+                subsequence($sequence, 1, $sequence-count - 1),
+                (:Places " and " before last item.:)
+                ' and ',
+                $sequence[$sequence-count]
+                )
+            else concat(
+                (:Places ", " after all items that do not come last.:)
+                string-join(subsequence($sequence, 1, $sequence-count - 1)
+                , ', ')
+                ,
+                (:Places ", and " before item that comes last.:)
+                ', and ',
+                $sequence[$sequence-count]
+                )
 };
 
 (:~
     Output the actual search result as a div, using the kwic module to summarize full text matches.
 :)
+(:template function in ajax.html, search.html:)
 declare 
     %templates:wrap
     %templates:default("start", 1)
@@ -553,199 +538,35 @@ declare %private function app:filter($node as node(), $mode as xs:string) as xs:
       concat(' ', $node)
 };
 
-declare function app:base($node as node(), $model as map(*)) {
-    let $context := request:get-context-path()
-    let $app-root := substring-after($config:app-root, "/db/")
-    return
-        <base xmlns="http://www.w3.org/1999/xhtml" href="{$context}/{$app-root}/"/>
-};
-
 (: This functions provides crude way to avoid the most common errors with paired expressions and apostrophes. :)
 (: TODO: check order of pairs:)
 declare %private function app:sanitize-lucene-query($query-string as xs:string) as xs:string {
     let $query-string := replace($query-string, "'", "''") (:escape apostrophes:)
     (:TODO: notify user if query has been modified.:)
-    (:Remove colons – Lucene fields are not supported.:)
-    let $query-string := translate($query-string, ":", " ")
+    let $query-string := translate($query-string, ":", "") (:remove colons – Lucene fields are not supported.:)
     let $query-string := 
-	   if (functx:number-of-matches($query-string, '"') mod 2) 
-	   then $query-string
-	   else replace($query-string, '"', ' ') (:if there is an uneven number of quotation marks, delete all quotation marks.:)
+	   if (functx:number-of-matches($query-string, '"') mod 2)
+	   then '"' || replace($query-string, '"', '') || '"'(:if there is an uneven number of quotation marks, delete all quotation marks and apply them again.:)
+	   else $query-string
     let $query-string := 
-	   if ((functx:number-of-matches($query-string, '\(') + functx:number-of-matches($query-string, '\)')) mod 2 eq 0) 
-	   then $query-string
-	   else translate($query-string, '()', ' ') (:if there is an uneven number of parentheses, delete all parentheses.:)
+	   if (functx:number-of-matches($query-string, '/') mod 2)
+	   then "/" || translate($query-string, '/', '') || "/" (:if there is an uneven number of slashes, delete all slashes and apply them again.:)
+	   else $query-string
     let $query-string := 
-	   if ((functx:number-of-matches($query-string, '\[') + functx:number-of-matches($query-string, '\]')) mod 2 eq 0) 
-	   then $query-string
-	   else translate($query-string, '[]', ' ') (:if there is an uneven number of brackets, delete all brackets.:)
+	   if ((functx:number-of-matches($query-string, '\(') + functx:number-of-matches($query-string, '\)')) mod 2)
+	   then translate($query-string, '()', '') (:if there is an uneven number of parentheses, delete all parentheses.:)
+	   else $query-string
     let $query-string := 
-	   if ((functx:number-of-matches($query-string, '{') + functx:number-of-matches($query-string, '}')) mod 2 eq 0) 
-	   then $query-string
-	   else translate($query-string, '{}', ' ') (:if there is an uneven number of braces, delete all braces.:)
+	   if ((functx:number-of-matches($query-string, '\[') + functx:number-of-matches($query-string, '\]')) mod 2)
+	   then translate($query-string, '[]', '') (:if there is an uneven number of brackets, delete all brackets.:)
+	   else $query-string
     let $query-string := 
-	   if ((functx:number-of-matches($query-string, '<') + functx:number-of-matches($query-string, '>')) mod 2 eq 0) 
-	   then $query-string
-	   else translate($query-string, '<>', ' ') (:if there is an uneven number of angle brackets, delete all angle brackets.:)
+	   if ((functx:number-of-matches($query-string, '{') + functx:number-of-matches($query-string, '}')) mod 2)
+	   then translate($query-string, '{}', '') (:if there is an uneven number of braces, delete all braces.:)
+	   else $query-string
+    let $query-string := 
+	   if ((functx:number-of-matches($query-string, '<') + functx:number-of-matches($query-string, '>')) mod 2)
+	   then translate($query-string, '<>', '') (:if there is an uneven number of angle brackets, delete all angle brackets.:)
+	   else $query-string
     return $query-string
-};
-
-(: Function to translate a Lucene search string to an intermediate string mimicking the XML syntax, 
-with some additions for later parsing of boolean operators. The resulting intermediary XML search string will be parsed as XML with util:parse(). 
-Based on Ron Van den Branden, https://rvdb.wordpress.com/2010/08/04/exist-lucene-to-xml-syntax/:)
-(:TODO:
-The following cases are not covered:
-1)
-<query><near slop="10"><first end="4">snake</first><term>fillet</term></near></query>
-as opposed to
-<query><near slop="10"><first end="4">fillet</first><term>snake</term></near></query>
-
-w(..)+d, w[uiaeo]+d is not treated correctly as regex.
-:)
-declare %private function app:parse-lucene($string as xs:string) {
-    (: replace all symbolic booleans with lexical counterparts :)
-    if (matches($string, '[^\\](\|{2}|&amp;{2}|!) ')) 
-    then
-        let $rep := 
-            replace(
-            replace(
-            replace(
-                $string, 
-            '&amp;{2} ', 'AND '), 
-            '\|{2} ', 'OR '), 
-            '! ', 'NOT ')
-        return app:parse-lucene($rep)                
-    else 
-        (: replace all booleans with '<AND/>|<OR/>|<NOT/>' :)
-        if (matches($string, '[^<](AND|OR|NOT) ')) 
-        then
-            let $rep := replace($string, '(AND|OR|NOT) ', '<$1/>')
-            return app:parse-lucene($rep)
-        else 
-            (: replace all '+' modifiers in token-initial position with '<AND/>' :)
-            if (matches($string, '(^|[^\w&quot;])\+[\w&quot;(]'))
-            then
-                let $rep := replace($string, '(^|[^\w&quot;])\+([\w&quot;(])', '$1<AND type=_+_/>$2')
-                return app:parse-lucene($rep)
-            else 
-                (: replace all '-' modifiers in token-initial position with '<NOT/>' :)
-                if (matches($string, '(^|[^\w&quot;])-[\w&quot;(]'))
-                then
-                    let $rep := replace($string, '(^|[^\w&quot;])-([\w&quot;(])', '$1<NOT type=_-_/>$2')
-                    return app:parse-lucene($rep)
-                else 
-                    (: replace parentheses with '<bool></bool>' :)
-                    (:NB: regex also uses parentheses!:) 
-                    if (matches($string, '(^|[\W-[\\]]|>)\(.*?[^\\]\)(\^(\d+))?(<|\W|$)'))                
-                    then
-                        let $rep := 
-                            (: add @boost attribute when string ends in ^\d :)
-                            (:if (matches($string, '(^|\W|>)\(.*?\)(\^(\d+))(<|\W|$)')) 
-                            then replace($string, '(^|\W|>)\((.*?)\)(\^(\d+))(<|\W|$)', '$1<bool boost=_$4_>$2</bool>$5')
-                            else:) replace($string, '(^|\W|>)\((.*?)\)(<|\W|$)', '$1<bool>$2</bool>$3')
-                        return app:parse-lucene($rep)
-                    else 
-                        (: replace quoted phrases with '<near slop="0"></bool>' :)
-                        if (matches($string, '(^|\W|>)(&quot;).*?\2([~^]\d+)?(<|\W|$)')) 
-                        then
-                            let $rep := 
-                                (: add @boost attribute when phrase ends in ^\d :)
-                                (:if (matches($string, '(^|\W|>)(&quot;).*?\2([\^]\d+)?(<|\W|$)')) 
-                                then replace($string, '(^|\W|>)(&quot;)(.*?)\2([~^](\d+))?(<|\W|$)', '$1<near boost=_$5_>$3</near>$6')
-                                (\: add @slop attribute in other cases :\)
-                                else:) replace($string, '(^|\W|>)(&quot;)(.*?)\2([~^](\d+))?(<|\W|$)', '$1<near slop=_$5_>$3</near>$6')
-                            return app:parse-lucene($rep)
-                        else (: wrap fuzzy search strings in '<fuzzy max-edits=""></fuzzy>' :)
-                            if (matches($string, '[\w-[<>]]+?~[\d.]*')) 
-                            then
-                                let $rep := replace($string, '([\w-[<>]]+?)~([\d.]*)', '<fuzzy max-edits=_$2_>$1</fuzzy>')
-                                return app:parse-lucene($rep)
-                            else (: wrap resulting string in '<query></query>' :)
-                                concat('<query>', replace(normalize-space($string), '_', '"'), '</query>')
-};
-
-(: Function to transform the intermediary structures in the search query generated through app:parse-lucene() and util:parse() 
-to full-fledged boolean expressions employing XML query syntax. 
-Based on Ron Van den Branden, https://rvdb.wordpress.com/2010/08/04/exist-lucene-to-xml-syntax/:)
-declare %private function app:lucene2xml($node as item(), $mode as xs:string) {
-    typeswitch ($node)
-        case element(query) return 
-            element { node-name($node)} {
-            element bool {
-            $node/node()/app:lucene2xml(., $mode)
-        }
-    }
-    case element(AND) return ()
-    case element(OR) return ()
-    case element(NOT) return ()
-    case element() return
-        let $name := 
-            if (($node/self::phrase | $node/self::near)[not(@slop > 0)]) 
-            then 'phrase' 
-            else node-name($node)
-        return
-            element { $name } {
-                $node/@*,
-                    if (($node/following-sibling::*[1] | $node/preceding-sibling::*[1])[self::AND or self::OR or self::NOT or self::bool])
-                    then
-                        attribute occur {
-                            if ($node/preceding-sibling::*[1][self::AND]) 
-                            then 'must'
-                            else 
-                                if ($node/preceding-sibling::*[1][self::NOT]) 
-                                then 'not'
-                                else 
-                                    if ($node[self::bool]and $node/following-sibling::*[1][self::AND])
-                                    then 'must'
-                                    else
-                                        if ($node/following-sibling::*[1][self::AND or self::OR or self::NOT][not(@type)]) 
-                                        then 'should' (:must?:) 
-                                        else 'should'
-                        }
-                    else ()
-                    ,
-                    $node/node()/app:lucene2xml(., $mode)
-        }
-    case text() return
-        if ($node/parent::*[self::query or self::bool]) 
-        then
-            for $tok at $p in tokenize($node, '\s+')[normalize-space()]
-            (:Here the query switches into regex mode based on whether or not characters used in regex expressions are present in $tok.:)
-            (:It is not possible reliably to distinguish reliably between a wildcard search and a regex search, so switching into wildcard searches is ruled out here.:)
-            (:One could also simply dispense with 'term' and use 'regex' instead - is there a speed penalty?:)
-                let $el-name := 
-                    if (matches($tok, '((^|[^\\])[.?*+()\[\]\\^|{}#@&amp;<>~]|\$$)') or $mode eq 'regex')
-                    then 'regex'
-                    else 'term'
-                return 
-                    element { $el-name } {
-                        attribute occur {
-                        (:if the term follows AND:)
-                        if ($p = 1 and $node/preceding-sibling::*[1][self::AND]) 
-                        then 'must'
-                        else 
-                            (:if the term follows NOT:)
-                            if ($p = 1 and $node/preceding-sibling::*[1][self::NOT])
-                            then 'not'
-                            else (:if the term is preceded by AND:)
-                                if ($p = 1 and $node/following-sibling::*[1][self::AND][not(@type)])
-                                then 'must'
-                                    (:if the term follows OR and is preceded by OR or NOT, or if it is standing on its own:)
-                                else 'should'
-                    }
-                    (:,
-                    if (matches($tok, '((^|[^\\])[.?*+()\[\]\\^|{}#@&amp;<>~]|\$$)')) 
-                    then
-                        (\:regex searches have to be lower-cased:\)
-                        attribute boost {
-                            lower-case(replace($tok, '(.*?)(\^(\d+))(\W|$)', '$3'))
-                        }
-                    else ():)
-        ,
-        (:regex searches have to be lower-cased:)
-        lower-case(normalize-space(replace($tok, '(.*?)(\^(\d+))(\W|$)', '$1')))
-        }
-        else normalize-space($node)
-    default return
-        $node
 };
