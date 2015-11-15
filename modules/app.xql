@@ -203,7 +203,7 @@ function app:checkbox($node as node(), $model as map(*), $target-texts as xs:str
 declare function app:work-type($node as node(), $model as map(*)) {
     let $work := $model("work")/ancestor-or-self::tei:TEI
     let $id := $work/@xml:id/string()
-    let $work-types := doc(concat($config:data-root, '/', 'work-types.xml'))//item[id = $id]/value
+    let $work-types := doc(concat($config:data, '/', 'work-types.xml'))//item[id = $id]/value
     return 
         string-join(
             for $work-type in $work-types
@@ -260,7 +260,7 @@ declare function app:copy-params($node as node(), $model as map(*)) {
 
 (:template function in index.html:)
 declare function app:work-types($node as node(), $model as map(*)) {
-    let $types := distinct-values(doc(concat($config:data-root, '/', 'work-types.xml'))//value)
+    let $types := distinct-values(doc(concat($config:data, '/', 'work-types.xml'))//value)
     let $control :=
         <select multiple="multiple" name="work-types" class="form-control">
             <option value="all">All Work Types</option>
@@ -342,12 +342,12 @@ function app:query($node as node()*, $model as map(*), $query as xs:string?, $sc
                 map {
                     "hits" := $cached,
                     "query" := session:get-attribute("apps.shakespeare.query"),
-                    "scope" := $scope,
-                    "target-texts" := $target-texts
+                    "scope" := session:get-attribute("apps.shakespeare.scope"),
+                    "target-texts" := session:get-attribute("apps.shakespeare.target-texts")
                 }
         else
             (:Get the work ids of the work types selected.:)  
-            let $target-text-ids := distinct-values(doc(concat($config:data-root, '/', 'work-types.xml'))//item[value = $work-types]/id)
+            let $target-text-ids := distinct-values(doc(concat($config:data, '/', 'work-types.xml'))//item[value = $work-types]/id)
             (:If no individual works have been selected, search in the works with ids selected by type;
             if indiidual works have been selected, then neglect that no selection has been done in works according to type.:) 
             let $target-texts := 
@@ -360,8 +360,8 @@ function app:query($node as node()*, $model as map(*), $query as xs:string?, $sc
                         if ($work-types = "all") then $target-texts else ($target-texts[. = $target-text-ids])
             let $context := 
                 if ($target-texts = 'all')
-                then collection($config:data-root)/tei:TEI
-                else collection($config:data-root)//tei:TEI[@xml:id = $target-texts]
+                then collection($config:data)/tei:TEI
+                else collection($config:data)//tei:TEI[@xml:id = $target-texts]
             let $hits :=
                 if ($scope eq 'narrow')
                 then
@@ -464,7 +464,7 @@ declare function app:ids-to-titles($ids as xs:string+) {
     let $titles :=
         for $id in $ids
         return
-            collection($config:data-root)//tei:TEI[@xml:id = $id]//tei:titleStmt/tei:title
+            collection($config:data)//tei:TEI[@xml:id = $id]//tei:titleStmt/tei:title
     let $count := count($titles)
     return
         app:serialize-list($titles, $count)
@@ -520,10 +520,17 @@ function app:show-hits($node as node()*, $model as map(*), $start as xs:integer,
     let $config := <config width="100" table="yes" link="{$div-id}.html?action=search#{$matchId}"/>
     let $hit := <hit>{($hit/preceding-sibling::*[1], $hit, $hit/following-sibling::*[1])}</hit>
     let $hit := util:expand($hit)
+    let $result :=
+        if ($hit//exist:match)
+        then
+            for $match in $hit//exist:match
+            let $kwic := kwic:get-summary($hit, $match, $config, app:filter#2)
+            return
+                ($loc, $kwic)
+        else
+             ($loc, <tr><td>{$hit}</td></tr>)
     return
-        for $match in $hit//exist:match
-        let $kwic := kwic:get-summary($hit, $match, $config, app:filter#2)
-        return ($loc, $kwic)
+        $result
 };
 
 (:~
@@ -545,8 +552,12 @@ declare %private function app:sanitize-lucene-query($query-string as xs:string) 
     (:TODO: notify user if query has been modified.:)
     let $query-string := translate($query-string, ":", "") (:remove colons – Lucene fields are not supported.:)
     let $query-string := 
+	   if (starts-with($query-string, '*') or starts-with($query-string, '?'))
+	   then translate($query-string, '*?', '') (:if the query starts with a wildcard, delete it.:)
+	   else $query-string
+    let $query-string := 
 	   if (functx:number-of-matches($query-string, '"') mod 2)
-	   then '"' || replace($query-string, '"', '') || '"'(:if there is an uneven number of quotation marks, delete all quotation marks and apply them again.:)
+	   then '"' || translate($query-string, '"', '') || '"'(:if there is an uneven number of quotation marks, delete all quotation marks and apply them again.:)
 	   else $query-string
     let $query-string := 
 	   if (functx:number-of-matches($query-string, '/') mod 2)
