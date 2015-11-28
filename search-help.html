@@ -187,7 +187,7 @@
             supports a restricted range of regex operators, but they should be sufficient for most
             uses.</p>
         <p>You put the search engine into regex mode by enclosing your search term with slashes. So
-            you would search e.g. for "/.{3}let/" to find "Hamlet".</p>
+            you would search e.g. for "/.{3}let/" to find "Hamlet" (but also, e.g. "fillet").</p>
         <section>
             <h4>Match any character</h4>
             <p>The period <code>"."</code> can be used to represent any character (this is the same
@@ -297,9 +297,9 @@
             </section>
             <section>
                 <h4> Alternation </h4>
-                <p>The pipe symbol <code>"|"</code> acts as an OR operator. The match will succeed
-                    if the pattern on either the left-hand side OR the right-hand side matches. The
-                    alternation applies to the <em>longest pattern</em>, not the shortest.</p>
+                <p>The pipe symbol <code>|</code> acts as an OR operator. The match will succeed if
+                    the pattern on either the left-hand side or the right-hand side matches. This is
+                    of course equivalent to the OR operator in standard Lucene syntax.</p>
                 <p>In order to retrieve the strings <code>"proportions"</code> and
                         <code>"preparations"</code>, the following expression can be used:</p>
                 <ul>

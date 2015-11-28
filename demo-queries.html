@@ -44,7 +44,7 @@ return
 </pre>
     </section>
     <section>
-        <h3>Find speeches and group them by play</h3>
+        <h3>Find speeches in which snakes are mentioned and group them by play</h3>
         <pre class="demo:display-source">xquery version "3.0";
 
 import module namespace kwic="http://exist-db.org/xquery/kwic";
@@ -78,7 +78,7 @@ declare function local:display($hits) {
         &lt;/div&gt;
 };
 
-let $query := "'fenny snake'"
+let $query := 'snake'
 return
     local:search($query)</pre>
     </section>
