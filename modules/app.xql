@@ -453,11 +453,15 @@ function app:paginate($node as node(), $model as map(*), $start as xs:int, $per-
 :)
 (:template function in search.html:)
 declare function app:query-report($node as node()*, $model as map(*)) {
-    let $hit-count := count($model("hits"))
+    let $hits := $model("hits")
+    let $hit-count := count($hits)
+    let $match-count := count(util:expand($hits)//exist:match)
     let $ids := $model("target-texts")
     return
-    <span xmlns="http://www.w3.org/1999/xhtml" id="query-report"> You searched for <strong>{'"' || $model("query") || '" '}</strong> in <strong>{if ($ids eq 'all') then 'all works' else app:ids-to-titles($ids)}</strong> and found <strong>{$hit-count}</strong>{if ($hit-count eq 1) then ' match.' else ' matches.'}
-    </span>
+        <span xmlns="http://www.w3.org/1999/xhtml" id="query-report"> You searched for <strong>{'"' || $model("query") || '" '}</strong> in 
+        <strong>{if ($ids eq 'all') then 'all works' else app:ids-to-titles($ids)}</strong> 
+        and found <strong>{$hit-count}</strong>{if ($hit-count eq 1) then ' hit' else ' hits'} with <strong>{$match-count}</strong> {if ($match-count eq 1) then ' match.' else ' matches.'}
+        </span>
 };
 
 declare function app:ids-to-titles($ids as xs:string+) {
