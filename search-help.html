@@ -65,7 +65,7 @@
                 words you would like to occur as hits and which word must (or must not) occur, of
                 stringing together words with AND, OR and NOT, grouping words with parentheses, and
                 so on. Quite complicated searches can be made with these options.</li>
-            <li>One can use Lucene wildcards - "?" for any single character and "*" for any sequence
+            <li>One can use Lucene wildcards - <code>?</code> for any single character and <code>*</code> for any sequence
                 of zero, one or more characters.</li>
             <li>Even more advanced, one can use regular expressions, the most precise (and
                 complicated) way of searching for texts strings.</li>
@@ -79,10 +79,10 @@
         <h3>Hitlist and Search Relevance</h3>
         <p>When searching for books in a library catalogue, one can usually choose to have the hits
             displayed according to relevance or according to author, title or suchlike. In the
-            Shakespeare app, hits are only displayed according to relevance, according to a "score"
+            SARIT app, hits from Lucene searches are only displayed according to relevance, according to a "score"
             computed for each search. The score is a quite complicated thing in itself, but
             basically, the more times your search terms occur in your search scope and the less
-            common they are in the index (that is, in Shakespeare's works) the higher the score they
+            common they are in the index (that is, in SARIT works) the higher the score they
             will get and the more prominent they will be in the hitlist. </p>
     </section>
     <section>
@@ -98,35 +98,35 @@
             score. Here you let words stand as they are (without + or -) if you would like all of
             them to occur in hits, but if there is only one of them present, you also want to have
             it displayed as a hit If you prefix one or more words with +, they must occur in a hit,
-            and if you prefix them with -, they must not occur as a hit. If you search for "snake
-            fillet" you get a lot of hits with either "snake" or "killed" and perhaps some with
-            both. If you search for "snake +fillet", all your hits will contain "fillet", but they
-            may or may not contain "snake". If you search for "snake -fillet", you would get hits
-            with "snake", but only if they do not contain "fillet".</p>
-        <p>If you use AND, OR and NOT, the logic is rather different. If you search for "snake AND
-            fillet" you get hits with both "snake" and "fillet" and none with only one of them. This
-            corresponds to "+snake +killed". If you search for "snake OR killed", this is the same
-            as simply searching for "snake fillet". If you search for "snake NOT fillet", this
-            equals searching for "snake -fillet".</p>
+            and if you prefix them with -, they must not occur as a hit. If you search for <code>snake
+            fillet</code> you get a lot of hits with either <code>snake</code> or <code>killed</code> and perhaps some with
+            both. If you search for "snake +fillet, all your hits will contain <code>fillet</code>, but they
+            may or may not contain <code>snake</code>. If you search for <code>snake -fillet</code>, you would get hits
+            with <code>snake</code>, but only if they do not contain <code>fillet</code>.</p>
+        <p>If you use AND, OR and NOT, the logic is rather different. If you search for <code>snake AND
+            fillet</code> you get hits with both <code>snake</code> and <code>fillet</code> and none with only one of them. This
+            corresponds to <code>+snake +killed</code>. If you search for <code>snake OR killed</code>, this is the same
+            as simply searching for <code>snake fillet</code>. If you search for <code>snake NOT fillet</code>, this
+            equals searching for <code>snake -fillet</code>.</p>
         <p>Searches can acquire higher complexity use of parentheses. Here the use of AND, OR and
-            NOT may come more naturally. Say you want to find passages where the word "fillet"
-            occurs but where also at least one of the words "snake", "deer", "bird" occurs. You can
-            express this by "(snake OR deer OR bird) AND fillet". An AND enforces "must occur" on
-            both sides, so both one of the animals and the word "fillet" have to occur in the hits.
-            Say (for some reason) you do not wish the words "pricket" and "mouse" to occur in your
-            hits – you then embroider your search expression with "NOT (pricket OR mouse)" as
-            "(snake OR deer OR bird) AND fillet NOT (pricket OR mouse)"</p>
-        <p>If you simply search for "pricket OR deer AND killed", you will (because the AND rubs off
-            to the left), search for passages where "deer" and "fillet" must occur, but you would
-            also like "pricket" to be marked as a hit. You can enforce a certain logic on your query
+            NOT may come more naturally. Say you want to find passages where the word <code>fillet</code>
+            occurs but where also at least one of the words <code>snake</code>, <code>deer</code>, <code>bird</code> occurs. You can
+            express this by <code>(snake OR deer OR bird) AND fillet</code>. An AND enforces "must occur" on
+            both sides, so both one of the animals and the word <code>fillet</code> have to occur in the hits.
+            Say (for some reason) you do not wish the words <code>pricket</code> and <code>mouse</code> to occur in your
+            hits – you then embroider your search expression with <code>NOT (pricket OR mouse)</code> as
+            <code>(snake OR deer OR bird) AND fillet NOT (pricket OR mouse)</code></p>
+        <p>If you simply search for <code>pricket OR deer AND killed</code>, you will (because the AND rubs off
+            to the left), search for passages where <code>deer</code> and <code>fillet</code> must occur, but you would
+            also like <code>pricket</code> to be marked as a hit. You can enforce a certain logic on your query
             by grouping with parentheses.</p>
-        <p>If you search for "(snake OR deer) AND fillet" you are saying that one or both of "snake"
-            and "deer" must occur, as must "fillet".</p>
-        <p>If you search for "snake OR (deer AND fillet)", you would like to retrieve hits where
-            "snake" occurs and you would like to retrieve hits where "deer" and "fillet" go
-            together. In practice this means that you will get a lot of "snake"-only hits.</p>
-        <p>You can also nest parentheses, e.g. "(snake OR (deer AND fillet)) NOT pricket" will
-            remove the hits with "pricket" from "snake OR (deer AND fillet". </p>
+        <p>If you search for <code>(snake OR deer) AND fillet</code> you are saying that one or both of <code>snake</code>
+            and <code>deer</code> must occur, as must <code>fillet</code>.</p>
+        <p>If you search for <code>snake OR (deer AND fillet)</code>, you would like to retrieve hits where
+            <code>snake</code> occurs and you would like to retrieve hits where <code>deer</code> and <code>fillet</code> go
+            together. In practice this means that you will get a lot of <code>snake</code>-only hits.</p>
+        <p>You can also nest parentheses, e.g. <code>(snake OR (deer AND fillet)) NOT pricket</code> will
+            remove the hits with <code>pricket</code> from <code>snake OR (deer AND fillet</code>. </p>
         <p>As you can see, the options are many …. And as if this was not enough, there is also
             regex – and regex syntax combined with standard syntax!</p>
     </section>
@@ -165,19 +165,19 @@
         <h3>Wildcard Expressions</h3>
         <p>Wildcard Expressions allow you to mask individual characters or sequences of characters
             inside words. Say, to switch examples, you wish to find all occurrences of "test" and of
-            "text". Now, you could search for "text test" (or "text OR test"), and this would give
-            you what you wanted, but you can also use the wildcard "?" and search for "te?t"
+            "text". Now, you could search for <code>text test</code> (or <code>text OR test</code>), and this would give
+            you what you wanted, but you can also use the wildcard <code>?</code> and search for <code>te?t</code>
             instead. This will find all words that consists of the two character "te", plus one
             character which can be anything, and end up with the character "t". It would also find
             "teat".</p>
-        <p>In addition to "?" which requires one and one only character, you can also use "*" which
-            stands for any character zero, one or more times. If you search for "te*t", you are
-            therefore likely to find many more words, among the "test" and "text", but also
+        <p>In addition to <code>?</code> which requires one and one only character, you can also use <code>*</code> which
+            stands for any character zero, one or more times. If you search for <code>te*t</code>, you are
+            therefore likely to find many more words, among them "test" and "text", but also
             "tempest", "testament" and "tent"</p>
         <p>You do not have to signal in any way that you are performing a wildcard search: just
-            including "?" or "*" is enough.</p>
+            including <code>?</code> or <code>*</code> is enough.</p>
         <p>A wildcard character cannot occur first in a search expression, so you cannot find
-            "Hamlet" with "?amlet" or "*let". If you wish to perform searches of this kind, you
+            "Hamlet" with <code>?amlet</code> or <code>*let</code>. If you wish to perform searches of this kind, you
             should use a regular expression.</p>
     </section>
     <section>
@@ -187,12 +187,12 @@
             supports a restricted range of regex operators, but they should be sufficient for most
             uses.</p>
         <p>You put the search engine into regex mode by enclosing your search term with slashes. So
-            you would search e.g. for "/.{3}let/" to find "Hamlet" (but also, e.g. "fillet").</p>
+            you would search e.g. for <code>/.{3}let/</code> to find "Hamlet" (but also, e.g. "fillet").</p>
         <section>
             <h4>Match any character</h4>
-            <p>The period <code>"."</code> can be used to represent any character (this is the same
-                as the "?" wildcard).</p>
-            <p> In order to retrieve the string <code>"snake"</code>, the following expressions can
+            <p>The period <code>.</code> can be used to represent any character (this is the same
+                as the <code>?</code> wildcard).</p>
+            <p> In order to retrieve the string "snake", the following expressions can
                 be used:</p>
             <ul>
                 <li>
@@ -207,7 +207,7 @@
             <h4>One-or-more</h4>
             <p>The plus sign <code>"+"</code> can be used to repeat the preceding shortest pattern
                 once or more times. </p>
-            <p>In order to retrieve the string <code>"deer"</code>, the following expression can be
+            <p>In order to retrieve the string "deer", the following expression can be
                 used:</p>
             <ul>
                 <li>
@@ -216,12 +216,12 @@
             </ul>
             <section>
                 <h4>Zero-or-more</h4>
-                <p>The asterisk <code>"*"</code> can be used to match the preceding shortest pattern
+                <p>The asterisk <code>*</code> can be used to match the preceding shortest pattern
                     zero-or-more times. Note that this applies to what comes before the asterisk -
-                    the wildcard "*" stands for a character in itself (a wildcard "*" amounts to a
-                    reg ".*")</p>
-                <p>In order to retrieve both the strings <code>"weed"</code> and <code>"wed"</code>
-                    (and <code>"welcomed"</code> and <code>"westward"</code> and so on), the
+                    the wildcard <code>*</code> stands for a character in itself (a wildcard <code>*</code> amounts to a
+                    reg <code>.*</code>)</p>
+                <p>In order to retrieve both the strings "weed" and "wed"
+                    (and "welcomed" and "westward" and so on), the
                     following expression can be used:</p>
                 <ul>
                     <li>
@@ -231,11 +231,11 @@
             </section>
             <section>
                 <h4>Zero-or-one</h4>
-                <p>The question mark <code>"?"</code> makes the preceding shortest pattern optional.
+                <p>The question mark <code>?</code> makes the preceding shortest pattern optional.
                     It matches zero or one times. Note that in Lucene wildcard searches,
-                        <code>"?"</code> stands for a character in itself; in regex searches the
+                        <code>?</code> stands for a character in itself; in regex searches the
                     question mark quantifies the immediately preceding character (or pattern). </p>
-                <p>In order to retrieve the strings <code>"weed"</code> and <code>"wed"</code>, the
+                <p>In order to retrieve the strings "weed" and "wed", the
                     following expression can be used:</p>
                 <ul>
                     <li>
@@ -245,7 +245,7 @@
             </section>
             <section>
                 <h4>Min-to-max</h4>
-                <p>Curly brackets <code>"{}"</code> can be used to specify a minimum and
+                <p>Curly brackets <code>{}</code> can be used to specify a minimum and
                     (optionally) a maximum number of times the preceding shortest pattern can
                     repeat. The allowed forms are:</p>
                 <table>
@@ -262,7 +262,7 @@
                         <td>repeat at least twice</td>
                     </tr>
                 </table>
-                <p>In order to retrieve the string <code>"weed"</code>, the following expression can
+                <p>In order to retrieve the string "weed", the following expression can
                     be used:</p>
                 <ul>
                     <li>
@@ -278,10 +278,10 @@
             </section>
             <section>
                 <h4>Grouping</h4>
-                <p>Parentheses <code>"()"</code> can be used to form sub-patterns. The quantity
+                <p>Parentheses <code>()</code> can be used to form sub-patterns. The quantity
                     operators listed above operate on the shortest previous pattern, which can be a
                     group.</p>
-                <p>In order to retrieve the string <code>"weed"</code>, the following expression can
+                <p>In order to retrieve the string "weed", the following expression can
                     be used:</p>
                 <ul>
                     <li>
@@ -300,8 +300,8 @@
                 <p>The pipe symbol <code>|</code> acts as an OR operator. The match will succeed if
                     the pattern on either the left-hand side or the right-hand side matches. This is
                     of course equivalent to the OR operator in standard Lucene syntax.</p>
-                <p>In order to retrieve the strings <code>"proportions"</code> and
-                        <code>"preparations"</code>, the following expression can be used:</p>
+                <p>In order to retrieve the strings "proportions" and
+                        "preparations", the following expression can be used:</p>
                 <ul>
                     <li>
                         <code>/(prepara|propor)tions/</code>
@@ -315,7 +315,7 @@
                     even though they are written differently, e.g. have either "e" or "o" in a
                     certain position or have "a" and "e" in a certain position </p>
                 <p>Ranges of potential characters may be represented as character classes by
-                    enclosing them in square brackets <code>"[]"</code>. A leading <code>^</code>
+                    enclosing them in square brackets <code>[]</code>. A leading caret <code>^</code>
                     negates the character class, that is, all characters other than the ones
                     following are signified.</p>
                 <p> The allowed forms are:</p>
@@ -326,7 +326,7 @@
                     </tr>
                     <tr>
                         <td>[a-c]</td>
-                        <td>'a' or 'b' or 'c' </td>
+                        <td>'a' to 'c'. i.e. 'a' or 'b' or 'c' </td>
                     </tr>
                     <tr>
                         <td>[-abc]</td>
@@ -349,10 +349,10 @@
                         <td>any character except '-' or 'a' or 'b' or 'c' </td>
                     </tr>
                 </table>
-                <p>Note that the dash <code>"-"</code> indicates a range of characters, unless it is
+                <p>Note that the dash <code>-</code> indicates a range of characters, unless it is
                     the first character or if it is escaped with a backslash.</p>
-                <p>The dash <code>"^"</code> negates the following characters.</p>
-                <p>In order to retrieve the string <code>"weed"</code>, the following expression
+                <p>The caret <code>^</code> negates the following characters.</p>
+                <p>In order to retrieve the string "weed", the following expression
                     could be used:</p>
                 <ul>
                     <li>
